@@ -1,4 +1,3 @@
-﻿
 title shijs batch
 wchcp 65001
 @echo off
@@ -28,7 +27,7 @@ echo -4-task manager
 echo -5-miscellaneous            
 set /p choice=
 
-if /i "%choice%"=="1" call :shortcuts_menu
+if /i "%choice%"=="1" call :shortcuts
 if /i "%choice%"=="2" call :fetch
 if /i "%choice%"=="3" call :terminal
 if /i "%choice%"=="4" call :taskmanager
@@ -36,7 +35,7 @@ if /i "%choice%"=="5" call :extra
 goto menu
 
 
-:shortcuts_menu
+:shortcuts
 cls
 
 :: initialize shortcuts.txt if it doesn't exist
@@ -51,18 +50,17 @@ if not exist shortcuts.txt (
 
 :show_shortcuts
 cls
-echo shortcuts:
+echo input 'create' to add a new 
+echo input 'delete (name)' to remove
 echo ---------------
-setlocal enabledelayedexpansion
 
+setlocal enabledelayedexpansion
 for /f "tokens=1 delims=;" %%a in (shortcuts.txt) do (
     echo %%a
 )
-
 echo ---------------
-echo type 'create' to add a new shortcut, 'delete [name]' to remove one
-echo type the name of the shortcut you wanna open
-echo type 'exit' to go back to the main menu.
+echo input shortcut name to open
+echo input B to go back
 set /p shortcut_choice="choose an option: "
 
 if /i "%shortcut_choice%"=="create" (
@@ -71,65 +69,75 @@ if /i "%shortcut_choice%"=="create" (
 ) else if "%shortcut_choice:~0,7%"=="delete " (
     call :delete_shortcut "%shortcut_choice:~7%"
     goto show_shortcuts
-) else if /i "%shortcut_choice%"=="exit" (
+) else if /i "%shortcut_choice%"=="B" (
     goto menu
 ) else (
     call :open_shortcut "%shortcut_choice%"
     goto show_shortcuts
 )
 
-choice /c B /n
-if errorlevel 1 goto menu
-
 :create_shortcut
 cls
 set /p shortcut_name="enter shortcut name (type 'exit' to go back): "
-if /i "%shortcut_name%"=="exit" goto shortcuts_menu
-
+if /i "%shortcut_name%"=="exit" goto show_shortcuts
 
 set /p shortcut_path="enter the full path for the shortcut (type 'exit' to go back): "
-if /i "%shortcut_path%"=="exit" goto shortcuts_menu
+if /i "%shortcut_path%"=="exit" goto show_shortcuts
 
 :: check if the shortcut already exists
 findstr /x /c:"%shortcut_name%;%shortcut_path%" shortcuts.txt >nul
 if %errorlevel%==0 (
     echo a shortcut with that name already exists.
     pause
-    goto shortcuts_menu
+    goto show_shortcuts
 )
-
 
 :: add shortcut to file
 echo %shortcut_name%;%shortcut_path% >> shortcuts.txt
 echo shortcut added successfully.
 
-choice /c B /n
-if errorlevel 1 goto menu
-
 pause
-goto shortcuts_menu
+goto show_shortcuts
 
 :delete_shortcut
 cls
 set "delete_name=%~1"
+
+:: check if shortcut exists before trying to delete
+findstr /c:"%delete_name%;" shortcuts.txt >nul
+if %errorlevel% neq 0 (
+    echo shortcut '%delete_name%' not found.
+    pause
+    goto show_shortcuts
+)
+
 :: search and remove the shortcut
 findstr /v /c:"%delete_name%;" shortcuts.txt > temp.txt
 move /y temp.txt shortcuts.txt >nul
 echo shortcut '%delete_name%' deleted.
 pause
-goto shortcuts_menu
- 
-choice /c B /n
-if errorlevel 1 goto menu
+goto show_shortcuts
 
 :open_shortcut
 cls
 set "shortcut_name=%~1"
 
-choice /c B /n
-if errorlevel 1 goto menu
+:: find the shortcut path
+for /f "tokens=1,2 delims=;" %%a in (shortcuts.txt) do (
+    if /i "%%a"=="%shortcut_name%" (
+        if exist "%%b" (
+            start explorer "%%b"
+        ) else (
+            echo shortcut path not found: %%b
+            pause
+        )
+        goto show_shortcuts
+    )
+)
 
-goto shortcuts_menu
+echo shortcut not found.
+pause
+goto show_shortcuts
 
 
 
@@ -305,11 +313,10 @@ if /i "%choice%"=="B" call :menu
 
 :matrix
 color 0a
-@echo off
 
-cls
+echo press any key
+timeout /t 99999 >nul
 
-pause
 
 :start
 
@@ -401,34 +408,6 @@ if errorlevel 1 goto menu
 goto main
 
 
-:extra
-mode 87,26
-cls
-
-echo -B- menu
-echo -1- open cmd
-echo -2- packages
-echo -3- test internet connection
-echo -4- colors
-echo -5- refresh icon cache
-echo -6- ascii hanekawa art
-echo -7- matrix
-echo -8- display all system info
-echo -9- all DOS commands
-set /p choice=
-
-
-if /i "%choice%"=="B" call :menu
-if /i "%choice%"=="1" call :cmd
-if /i "%choice%"=="2" call :packages
-if /i "%choice%"=="3" call :internet
-if /i "%choice%"=="4" call :colors
-if /i "%choice%"=="5" call :refresh_icon_cache
-if /i "%choice%"=="6" call :ascii
-if /i "%choice%"=="7" call :matrix
-if /i "%choice%"=="8" call :systeminfo
-if /i "%choice%"=="9" call :DOS
-goto extra
 
 :cmd
 cls
@@ -440,7 +419,6 @@ goto extra
 :internet
 
 :check_connection
-mode 50,3
 echo.
 echo please wait... checking internet connection...
 timeout /t 1 /nobreak >nul
@@ -456,17 +434,17 @@ for /f "delims=" %%I in ('curl -s https://api.ipify.org') do set PublicIP=%%I
 echo your local IP address is: %LocalIP%
 echo your public IP address is: %PublicIP%
 
-pause
+timeout /t 99999 >nul
+
 goto :extra
 
 :refresh_icon_cache
-cls
 echo refreshing icon cache...
 taskkill /im explorer.exe /f
 del /a:h "%localappdata%\microsoft\windows\explorer\iconcache*" >nul 2>&1
 start explorer.exe
 echo icon cache refreshed.
-pause
+timeout /t 99999 >nul
 goto extra
 
 :colors
@@ -497,6 +475,7 @@ set /p bgChoice=
 
 
 :: set the foreground and background colors based on user input
+if "%fgChoice%"=="B" goto :extra
 if "%fgChoice%"=="1" set fgColor=0
 if "%fgChoice%"=="2" set fgColor=4
 if "%fgChoice%"=="3" set fgColor=2
@@ -506,6 +485,7 @@ if "%fgChoice%"=="6" set fgColor=5
 if "%fgChoice%"=="7" set fgColor=3
 if "%fgChoice%"=="8" set fgColor=7
 
+if "%bgChoice%"=="B" goto :extra
 if "%bgChoice%"=="1" set bgColor=0
 if "%bgChoice%"=="2" set bgColor=4
 if "%bgChoice%"=="3" set bgColor=2
@@ -527,6 +507,7 @@ choice /c B /n
 if errorlevel 1 goto extra
 
 pause
+goto extra
 
 :taskmanager
 mode 87,26
@@ -621,7 +602,7 @@ choice /c B /n
 if errorlevel 1 goto taskmenu
 
 :packages
-cls
+
 echo -B-back
 echo -1-install choco (package manager) [need to run batch as admin]
 echo -2-install packages                [need to run batch as admin]
@@ -645,6 +626,8 @@ goto packages
 
 :choco
 cls
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
 
 echo Opening PowerShell to enable script execution and install Chocolatey...
 
@@ -659,6 +642,9 @@ pause
 
 :installpgk
 cls
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
 echo Opening PowerShell to install packages with Chocolatey...
 echo This may take some time depending on your internet speed.
 
@@ -690,7 +676,7 @@ powershell -Command "
     choco install asciiquarium -y --confirm --accept-license --no-progress;
 "
 
-echo Installation process completed!
+echo installation process completed
 pause
 
 :usage
@@ -720,7 +706,8 @@ echo lolcat: fun text generator. run: lolcat [text]
 echo toilet: text generator with fonts. run: toilet [text]
 echo asciiquarium: ascii fish tank. run: asciiquarium
 
-pause
+timeout /t 99999 >nul
+
 goto packages
 
 :installed
@@ -728,23 +715,30 @@ cls
 
 choco list
 
-pause
+timeout /t 99999 >nul
+
 
 :f
 
 echo faggot
 
-pause
+timeout /t 99999 >nul
+
 
 :systeminfo
+mode 900,900
 cls
 
-systeminfo | more
+systeminfo 
 
-pause
+timeout /t 99999 >nul
+
 goto :extra
 
 :uninstallchoco
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
 choco uninstall chocolatey -y
 
 rd /s /q C:\ProgramData\Chocolatey
@@ -771,5 +765,484 @@ if "%devinput%"=="menu" goto :menu
 call :realterminal
 
 
+:DOS
+echo -B- menu
+echo -1- list ALL commands
+echo -2- list only most used commands
+set /p choice=
+
+if /i "%choice%"=="B" call :extra
+if /i "%choice%"=="1" call :all
+if /i "%choice%"=="2" call :notall
+
+goto :DOS
+
+:all 
+mode 900,900 
+echo @echo off  ^- hides command output  
+echo ^| more  ^- paginates output  
+echo ^&  ^- runs multiple commands sequentially  
+echo ^&^&  ^- runs next command only if previous succeeds  
+echo ^|^|  ^- runs next command only if previous fails  
+echo ^^^  ^- escapes special characters  
+echo ^> file.txt  ^- creates file  
+echo ^>> file.txt  ^- appends to file  
+echo ^< file.txt  ^- reads input from file  
+echo 2^> error.log  ^- redirects errors to file  
+echo 2^>> error.log  ^- appends errors to file  
+echo command ^> nul  ^- suppresses output  
+echo command 2^> nul  ^- suppresses errors  
+echo command ^> output.txt 2^>^&1  ^- redirects output and errors  
+echo arp -a  ^- show arp cache  
+echo assoc .ext  ^- show file association  
+echo attrib +h file  ^- hide file  
+echo attrib -h file  ^- unhide file  
+echo attrib +s +h file  ^- make file system hidden  
+echo call file.bat  ^- runs another batch file  
+echo cd /d path  ^- changes directory  
+echo chkdsk drive: /f  ^- check disk for errors  
+echo choice /c yn /m "message"  ^- user choice prompt  
+echo cipher /w:c:\  ^- securely delete files  
+echo cls  ^- clears the screen  
+echo color 0A  ^- changes text color  
+echo convert drive /fs:ntfs  ^- convert to ntfs  
+echo copy source dest  ^- copies files  
+echo del file  ^- deletes a file  
+echo dir  ^- lists files in a folder  
+echo dir /s /b ^| find "text"  ^- search files  
+echo diskpart  ^- open disk partition tool  
+echo driverquery  ^- list drivers  
+echo echo text  ^- prints text  
+echo echo %%date%% %%time%%  ^- print date and time  
+echo endlocal  ^- ends local variable scope  
+echo erase file  ^- deletes a file (same as del)  
+echo exit  ^- closes the script  
+echo find "text" file.txt  ^- searches in file  
+echo findstr "text" file.txt  ^- searches for text with more options  
+echo for %%i in (*) do command  ^- loops through files  
+echo for /l %%i in (start,step,end) do command  ^- loops through numbers  
+echo for /f "tokens=*" %%i in (file.txt) do command  ^- reads file line by line  
+echo fsutil behavior query disabledeletenotify  ^- check trim status  
+echo fsutil file createnew file.txt 1000  ^- create 1kb file  
+echo goto label  ^- jumps to label  
+echo icacls file /grant username:F  ^- give full permission  
+echo icacls file /reset  ^- reset permissions  
+echo if condition command  ^- conditional execution  
+echo if exist file command  ^- checks if file exists  
+echo if not exist file command  ^- checks if file doesn't exist  
+echo if errorlevel number command  ^- checks error code  
+echo ipconfig  ^- show network info  
+echo ipconfig /all  ^- detailed network info  
+echo ipconfig /release  ^- release ip address  
+echo ipconfig /renew  ^- renew ip address  
+echo ipconfig /flushdns  ^- clear dns cache  
+echo label drive label  ^- change drive label  
+echo md folder  ^- creates folder  
+echo mkdir folder  ^- creates folder (same as md)  
+echo move source dest  ^- moves files  
+echo net localgroup administrators username /add  ^- add user to admin  
+echo net share  ^- show shared folders  
+echo net start service  ^- start a service  
+echo net stop service  ^- stop a service  
+echo net use x: ^\\server\share  ^- map network drive  
+echo net user  ^- show user accounts  
+echo net user username password /add  ^- create user  
+echo net user username /delete  ^- delete user  
+echo netstat -an  ^- show network connections  
+echo pause  ^- waits for user input  
+echo ping 127.0.0.1  ^- test network response  
+echo powercfg /hibernate on  ^- enable hibernate  
+echo powercfg /hibernate off  ^- disable hibernate  
+echo reg add key /v name /t type /d data /f  ^- add registry entry  
+echo reg delete key /v name /f  ^- delete registry entry  
+echo reg query key  ^- read registry key  
+echo rmdir /s /q folder  ^- deletes folder  
+echo rd /s /q folder  ^- deletes folder (same as rmdir)  
+echo route print  ^- show routing table  
+echo rundll32 user32.dll,ExitWindowsEx  ^- log off  
+echo rundll32 user32.dll,LockWorkStation  ^- lock pc  
+echo rundll32 user32.dll,SetSuspendState  ^- sleep mode  
+echo sc config service start^= auto  ^- set service to auto  
+echo sc query service  ^- check service status  
+echo sc start service  ^- start service  
+echo sc stop service  ^- stop service  
+echo set var^=value  ^- defines variable  
+echo set /a var^=5+5  ^- sets variable to a math result  
+echo set /p var^=prompt  ^- gets user input  
+echo setlocal  ^- limits variable scope  
+echo shutdown /a  ^- abort shutdown  
+echo shutdown /r /t 0  ^- restart pc  
+echo shutdown /s /t 0  ^- shutdown pc  
+echo start file.exe  ^- opens a file or program  
+echo systeminfo  ^- show system details  
+echo takeown /f file /r /d y  ^- take file ownership  
+echo taskkill /im program.exe /f  ^- force kill task  
+echo tasklist  ^- lists running processes  
+echo timeout /t 5 /nobreak  ^- wait 5 sec  
+echo title name  ^- sets window title  
+echo tree  ^- show directory structure  
+echo type file.txt  ^- displays file content  
+echo ver  ^- show windows version  
+echo vol  ^- show volume info  
+echo wmic bios get serialnumber  ^- get bios serial  
+echo wmic cpu get name  ^- get cpu name  
+echo wmic os get name  ^- get os name  
+echo wscript.sleep 5000  ^- wait 5 sec (vbs inside batch)  
+
+timeout /t 99999 >nul
+
+goto :extra
+
+:notall
+echo cls  -  clears the screen  
+echo pause  -  waits for user input  
+echo exit  -  closes the script  
+echo title name  -  sets window title  
+echo color 0A  -  changes text color  
+echo call file.bat  -  runs another batch file  
+echo start file.exe  -  opens a file or program  
+echo cd /d path  -  changes directory  
+echo dir  -  lists files in a folder  
+echo copy source dest  -  copies files  
+echo move source dest  -  moves files  
+echo del file  -  deletes a file  
+echo rmdir /s /q folder  -  deletes folder  
+echo md folder  -  creates folder  
+echo set var=value  -  defines variable  
+echo echo %var%  -  prints variable  
+echo if condition command  -  conditional execution  
+echo for %%i in (*) do command  -  loops through files  
+echo choice /c yn /m "message"  -  user choice prompt  
+echo timeout /t 5 /nobreak  -  wait 5 sec  
+echo goto label  -  jumps to label  
+echo :label  -  defines label  
+echo > file.txt  -  creates file  
+echo >> file.txt  -  appends to file  
+echo type file.txt  -  displays file content  
+echo find "text" file.txt  -  searches in file  
+echo taskkill /im program.exe /f  -  force kill task  
+echo shutdown /s /t 0  -  shutdown pc
+
+timeout /t 99999 >nul
+
+goto :extra
 
 
+
+
+
+
+
+
+
+:windows
+cls
+mode 900,900  
+echo alt + enter  ^- fullscreen for command prompt  
+echo alt + esc  ^- cycle through open windows  
+echo alt + f4  ^- close active window/shutdown pc  
+echo alt + left arrow  ^- go back in file explorer  
+echo alt + right arrow  ^- go forward in file explorer  
+echo alt + space  ^- open window menu  
+echo alt + tab  ^- switch between open windows  
+echo ctrl + a  ^- select all  
+echo ctrl + alt + delete  ^- open security options  
+echo ctrl + alt + esc  ^- open task manager directly  
+echo ctrl + alt + up arrow  ^- rotate screen to normal  
+echo ctrl + alt + down arrow  ^- rotate screen upside down  
+echo ctrl + alt + left arrow  ^- rotate screen left  
+echo ctrl + alt + right arrow  ^- rotate screen right  
+echo ctrl + b  ^- bold text (in some apps)  
+echo ctrl + c  ^- copy selected text  
+echo ctrl + d  ^- delete selected file  
+echo ctrl + e  ^- focus on search bar in file explorer  
+echo ctrl + f  ^- find text in most applications  
+echo ctrl + h  ^- open history in some browsers  
+echo ctrl + i  ^- italic text (in some apps)  
+echo ctrl + l  ^- highlight address bar in browsers  
+echo ctrl + m  ^- enter move mode in command prompt  
+echo ctrl + n  ^- open a new window in some apps  
+echo ctrl + p  ^- print  
+echo ctrl + r  ^- refresh the page  
+echo ctrl + s  ^- save file  
+echo ctrl + shift + esc  ^- open task manager  
+echo ctrl + shift + n  ^- create new folder  
+echo ctrl + v  ^- paste  
+echo ctrl + w  ^- close current tab  
+echo ctrl + x  ^- cut selected text or file  
+echo ctrl + y  ^- redo last action  
+echo ctrl + z  ^- undo last action  
+echo f1  ^- open help  
+echo f2  ^- rename selected file  
+echo f3  ^- open search in file explorer  
+echo f4  ^- focus on address bar in file explorer  
+echo f5  ^- refresh page or folder  
+echo f6  ^- cycle through elements in a window  
+echo f10  ^- activate menu bar in some apps  
+echo home  ^- move to beginning of line  
+echo end  ^- move to end of line  
+echo shift + delete  ^- permanently delete file  
+echo shift + f10  ^- open right-click menu  
+echo shift + tab  ^- move focus backward  
+echo tab  ^- move focus forward  
+echo windows + 1-9  ^- open taskbar programs by position  
+echo windows + a  ^- open action center  
+echo windows + ctrl + d  ^- create new virtual desktop  
+echo windows + ctrl + left/right  ^- switch virtual desktops  
+echo windows + ctrl + f4  ^- close virtual desktop  
+echo windows + d  ^- show desktop  
+echo windows + e  ^- open file explorer  
+echo windows + g  ^- open game bar  
+echo windows + h  ^- open voice typing  
+echo windows + i  ^- open settings  
+echo windows + k  ^- open connect menu  
+echo windows + l  ^- lock computer  
+echo windows + m  ^- minimize all windows  
+echo windows + p  ^- project screen settings  
+echo windows + r  ^- open run dialog  
+echo windows + s  ^- open search  
+echo windows + shift + s  ^- take screenshot (snipping tool)  
+echo windows + t  ^- cycle through taskbar programs  
+echo windows + u  ^- open accessibility settings  
+echo windows + v  ^- open clipboard history  
+echo windows + x  ^- open quick link menu  
+echo windows + .  ^- open emoji panel  
+echo windows + space  ^- switch keyboard language  
+echo windows + tab  ^- open task view  
+
+timeout /t 1000 >nul
+goto extra
+
+:extra
+mode 87,26
+cls
+
+echo -B- menu
+echo -0- advanced tools [need admin]
+echo -1- open cmd
+echo -2- packages
+echo -3- test internet connection
+echo -4- colors
+echo -5- refresh icon cache
+echo -6- ascii hanekawa art
+echo -7- matrix
+echo -8- display all system info
+echo -9- all DOS commands
+echo -10- all windows hotkeys
+echo -11- check ddr
+set /p choice=
+
+
+if /i "%choice%"=="B" call :menu
+if /i "%choice%"=="0" call :advanced
+if /i "%choice%"=="1" call :cmd
+if /i "%choice%"=="2" call :packages
+if /i "%choice%"=="3" call :internet
+if /i "%choice%"=="4" call :colors
+if /i "%choice%"=="5" call :refresh_icon_cache
+if /i "%choice%"=="6" call :ascii
+if /i "%choice%"=="7" call :matrix
+if /i "%choice%"=="8" call :systeminfo
+if /i "%choice%"=="9" call :DOS
+if /i "%choice%"=="10" call :windows
+if /i "%choice%"=="11" call :ddr
+goto extra
+
+:ddr
+echo note that anything above ddr2 cannot be displayed
+
+:: Initialize a flag to check if DDR or DDR2 was found
+set foundDDR=0
+
+for /f "skip=1" %%A in ('wmic memorychip get MemoryType 2^>nul') do (
+    set "ramtype=%%A"
+    
+    if "!ramtype!"=="20" (
+        echo  RAM type is DDR
+        set foundDDR=1
+    )
+    if "!ramtype!"=="21" (
+        echo  RAM type is DDR2
+        set foundDDR=1
+    )
+)
+
+:: If no DDR or DDR2 was found, display a message
+if "!foundDDR!"=="0" (
+    echo your RAM type is DDR3 or higher
+)
+
+timeout /t 10 >nul
+
+goto :extra
+
+:advanced 
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
+cls
+
+echo -B- back
+echo.
+echo -S- system backup 
+echo.
+echo -R- repair system
+echo.
+echo -D- date and time configuration 
+echo.
+echo -P- power options 
+set /p choice=
+
+if /i "%choice%"=="B" call :extra
+if /i "%choice%"=="S" call :backup 
+if /i "%choice%"=="R" call :repair 
+if /i "%choice%"=="D" call :date   
+if /i "%choice%"=="P" call :power
+goto :advanced
+
+:backup
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
+echo enter the path of the folder or drive to copy (e.g., C:\, D:\, or any folder path)
+set /p source=
+
+
+if not exist "%source%" (
+    echo source path does not exist.
+    goto :advanced
+)
+
+
+echo enter the destination directory (e.g., E:\ or any folder path)
+set /p destination=
+
+
+if not exist "%destination%" (
+    echo Destination path does not exist.
+    goto :advanced
+)
+
+echo choose backup type:
+echo F folder
+echo Z ZIP File
+set /p backuptype=
+
+if "%backuptype%"=="f" goto :backup_folder
+if "%backuptype%"=="z" goto :backup_zip
+
+echo invalid selection.
+goto :backup
+
+:backup_folder
+echo name the folder
+set /p foldername=
+
+:: create the new folder at the destination
+mkdir "%destination%\%foldername%"
+
+echo copying files from "%source%" to "%destination%\%foldername%" in 5 seconds
+echo hit ctrl + c to cancel
+timeout /t 1 >nul
+echo 5
+timeout /t 1 >nul
+echo 4
+timeout /t 1 >nul
+echo 3
+timeout /t 1 >nul
+echo 2
+timeout /t 1 >nul
+echo 1
+
+echo on
+
+xcopy "%source%" "%destination%\%foldername%" /e /h /y
+
+echo off
+
+echo operation completed
+
+pause
+goto :advanced
+
+:backup_zip
+echo name the zip file (without extension)
+set /p foldername=
+
+echo creating zip file "%destination%\%foldername%.zip"...
+powershell Compress-Archive -Path "%source%\*" -DestinationPath "%destination%\%foldername%.zip"
+
+echo zip operation completed
+
+pause
+goto :advanced
+
+
+:repair
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
+echo on
+sfc /scannow
+echo off
+timeout /t 999 >nul
+goto :advanced
+
+:notadmin
+echo this script requires admin privileges!
+timeout /t 9999 >nul
+goto :extra
+
+:date
+cls
+net session >nul 2>&1 || goto notadmin
+echo running as admin...
+
+echo the date and time is %date% %time%
+echo change? (y/n)
+set /p choice=
+if /i "%choice%" neq "y" goto :advanced
+
+echo input time (hh:mm)
+set /p newtime=
+time %newtime%
+
+for /f "tokens=2 delims=/.-" %%a in ("%date%") do set delf=%%a
+if "%delf%" gtr "12" (set fmt=ddmmyyyy) else (set fmt=mmddyyyy)
+
+echo input date (%fmt%)
+set /p newdate=
+date %newdate%
+
+echo date and time changed
+
+timeout /t 999 >nul
+goto :advanced
+
+:power
+echo B back
+echo S shutdown
+echo Z Zzzzzz
+echo R Restart
+set /p option=
+
+if "%option%"=="s" goto :off
+if "%option%"=="z" goto :sleep
+if "%option%"=="r" goto :restart
+if "%option%"=="b" goto :advanced
+
+goto :power
+
+:off
+echo on
+shutdown /s /f /t 0
+
+:restart
+echo on
+shutdown /r /f /t 0
+
+:sleep
+powercfg -hibernate off
+rundll32.exe powrprof.dll,SetSuspendState 0,1,0
+powercfg -hibernate on
+goto :power
