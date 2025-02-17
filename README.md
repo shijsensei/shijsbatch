@@ -15,4 +15,4 @@ plans for the future:
 - add anime girls ascii section
 - add personal computer password grabber
 
-                            ![original](https://github.com/user-attachments/assets/ed607000-4dc9-404b-8390-61ef2931e909)
+ ![original](https://github.com/user-attachments/assets/ed607000-4dc9-404b-8390-61ef2931e909)
