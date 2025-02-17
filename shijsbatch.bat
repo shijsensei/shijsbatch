@@ -1091,23 +1091,31 @@ powercfg -hibernate on
 goto :power
 
 :update
-echo checking for updates from https://github.com/shijsensei/shijsbatch
+echo checking for updates from https://github.com/shijsensei/shijsbatch/tree/main...
 
+:: fetch the latest release info from the github api
 curl -s https://api.github.com/repos/shijsensei/shijsbatch/releases/latest > latest_release.json
 
+:: extract the latest release version number
 for /f "delims=: tokens=2" %%a in ('findstr /i "tag_name" latest_release.json') do set latest_version=%%a
 
+:: remove any quotes or unwanted characters like commas
 set latest_version=%latest_version:"=%
-set latest_version=%latest_version:,=%
+set latest_version=%latest_version:,=% 
+
+:: strip leading/trailing spaces
 for /f "tokens=* delims= " %%b in ("%latest_version%") do set latest_version=%%b
 
+:: convert latest_version to lowercase (optional but keeps everything uniform)
 setlocal enabledelayedexpansion
 set "latest_version=!latest_version:~0,1!!latest_version:~1!"
 endlocal
 
+:: force lowercase on current_version
 set current_version=2
 set current_version=%current_version: =%
 
+:: print current_version and latest_version for debugging
 echo current_version: %current_version%
 echo latest_version: %latest_version%
 
@@ -1117,11 +1125,12 @@ if "%current_version%"=="%latest_version%" (
     echo no update yet :(
     pause
 ) else (
-    echo new release found! opening release in browser...
+    echo new release found opening release in browser...
     start https://github.com/shijsensei/shijsbatch/releases/latest
 )
-pause
+timeout /t 9999 >nul
 goto :extra
+
 
 :collect
 
