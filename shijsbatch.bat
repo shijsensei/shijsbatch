@@ -4,7 +4,7 @@ wchcp 65001
 setlocal enabledelayedexpansion
 
 
-color 0c
+color 5
 
 if "%1"==":a" goto :a
 
@@ -347,7 +347,7 @@ goto numbers
 
 :ascii
 cls
-mode 152,130
+mode 152,100
 
 echo                        WWMMMMGGGGGGGGGGGGGGGGGMMMMMMMMGGMMMMMMMMMMMMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
 echo                       WWMMMMGGGGGGGGGGGGGGGGGGMMMMMMMMGGMMMMMMMMMMMMWWWWRWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
@@ -403,7 +403,7 @@ echo ..............WWWWWWWMMMMMMMMMMMMMMWT.WT............................WWW...T
 pause > nul  REM 
 
 choice /c B /n
-if errorlevel 1 goto menu
+if errorlevel 1 goto extra
 
 goto main
 
@@ -438,7 +438,7 @@ timeout /t 99999 >nul
 
 goto :extra
 
-:refresh_icon_cache
+:refresh
 echo refreshing icon cache...
 taskkill /im explorer.exe /f
 del /a:h "%localappdata%\microsoft\windows\explorer\iconcache*" >nul 2>&1
@@ -765,169 +765,6 @@ if "%devinput%"=="menu" goto :menu
 call :realterminal
 
 
-:DOS
-echo -B- menu
-echo -1- list ALL commands
-echo -2- list only most used commands
-set /p choice=
-
-if /i "%choice%"=="B" call :extra
-if /i "%choice%"=="1" call :all
-if /i "%choice%"=="2" call :notall
-
-goto :DOS
-
-:all 
-mode 900,900 
-echo @echo off  ^- hides command output  
-echo ^| more  ^- paginates output  
-echo ^&  ^- runs multiple commands sequentially  
-echo ^&^&  ^- runs next command only if previous succeeds  
-echo ^|^|  ^- runs next command only if previous fails  
-echo ^^^  ^- escapes special characters  
-echo ^> file.txt  ^- creates file  
-echo ^>> file.txt  ^- appends to file  
-echo ^< file.txt  ^- reads input from file  
-echo 2^> error.log  ^- redirects errors to file  
-echo 2^>> error.log  ^- appends errors to file  
-echo command ^> nul  ^- suppresses output  
-echo command 2^> nul  ^- suppresses errors  
-echo command ^> output.txt 2^>^&1  ^- redirects output and errors  
-echo arp -a  ^- show arp cache  
-echo assoc .ext  ^- show file association  
-echo attrib +h file  ^- hide file  
-echo attrib -h file  ^- unhide file  
-echo attrib +s +h file  ^- make file system hidden  
-echo call file.bat  ^- runs another batch file  
-echo cd /d path  ^- changes directory  
-echo chkdsk drive: /f  ^- check disk for errors  
-echo choice /c yn /m "message"  ^- user choice prompt  
-echo cipher /w:c:\  ^- securely delete files  
-echo cls  ^- clears the screen  
-echo color 0A  ^- changes text color  
-echo convert drive /fs:ntfs  ^- convert to ntfs  
-echo copy source dest  ^- copies files  
-echo del file  ^- deletes a file  
-echo dir  ^- lists files in a folder  
-echo dir /s /b ^| find "text"  ^- search files  
-echo diskpart  ^- open disk partition tool  
-echo driverquery  ^- list drivers  
-echo echo text  ^- prints text  
-echo echo %%date%% %%time%%  ^- print date and time  
-echo endlocal  ^- ends local variable scope  
-echo erase file  ^- deletes a file (same as del)  
-echo exit  ^- closes the script  
-echo find "text" file.txt  ^- searches in file  
-echo findstr "text" file.txt  ^- searches for text with more options  
-echo for %%i in (*) do command  ^- loops through files  
-echo for /l %%i in (start,step,end) do command  ^- loops through numbers  
-echo for /f "tokens=*" %%i in (file.txt) do command  ^- reads file line by line  
-echo fsutil behavior query disabledeletenotify  ^- check trim status  
-echo fsutil file createnew file.txt 1000  ^- create 1kb file  
-echo goto label  ^- jumps to label  
-echo icacls file /grant username:F  ^- give full permission  
-echo icacls file /reset  ^- reset permissions  
-echo if condition command  ^- conditional execution  
-echo if exist file command  ^- checks if file exists  
-echo if not exist file command  ^- checks if file doesn't exist  
-echo if errorlevel number command  ^- checks error code  
-echo ipconfig  ^- show network info  
-echo ipconfig /all  ^- detailed network info  
-echo ipconfig /release  ^- release ip address  
-echo ipconfig /renew  ^- renew ip address  
-echo ipconfig /flushdns  ^- clear dns cache  
-echo label drive label  ^- change drive label  
-echo md folder  ^- creates folder  
-echo mkdir folder  ^- creates folder (same as md)  
-echo move source dest  ^- moves files  
-echo net localgroup administrators username /add  ^- add user to admin  
-echo net share  ^- show shared folders  
-echo net start service  ^- start a service  
-echo net stop service  ^- stop a service  
-echo net use x: ^\\server\share  ^- map network drive  
-echo net user  ^- show user accounts  
-echo net user username password /add  ^- create user  
-echo net user username /delete  ^- delete user  
-echo netstat -an  ^- show network connections  
-echo pause  ^- waits for user input  
-echo ping 127.0.0.1  ^- test network response  
-echo powercfg /hibernate on  ^- enable hibernate  
-echo powercfg /hibernate off  ^- disable hibernate  
-echo reg add key /v name /t type /d data /f  ^- add registry entry  
-echo reg delete key /v name /f  ^- delete registry entry  
-echo reg query key  ^- read registry key  
-echo rmdir /s /q folder  ^- deletes folder  
-echo rd /s /q folder  ^- deletes folder (same as rmdir)  
-echo route print  ^- show routing table  
-echo rundll32 user32.dll,ExitWindowsEx  ^- log off  
-echo rundll32 user32.dll,LockWorkStation  ^- lock pc  
-echo rundll32 user32.dll,SetSuspendState  ^- sleep mode  
-echo sc config service start^= auto  ^- set service to auto  
-echo sc query service  ^- check service status  
-echo sc start service  ^- start service  
-echo sc stop service  ^- stop service  
-echo set var^=value  ^- defines variable  
-echo set /a var^=5+5  ^- sets variable to a math result  
-echo set /p var^=prompt  ^- gets user input  
-echo setlocal  ^- limits variable scope  
-echo shutdown /a  ^- abort shutdown  
-echo shutdown /r /t 0  ^- restart pc  
-echo shutdown /s /t 0  ^- shutdown pc  
-echo start file.exe  ^- opens a file or program  
-echo systeminfo  ^- show system details  
-echo takeown /f file /r /d y  ^- take file ownership  
-echo taskkill /im program.exe /f  ^- force kill task  
-echo tasklist  ^- lists running processes  
-echo timeout /t 5 /nobreak  ^- wait 5 sec  
-echo title name  ^- sets window title  
-echo tree  ^- show directory structure  
-echo type file.txt  ^- displays file content  
-echo ver  ^- show windows version  
-echo vol  ^- show volume info  
-echo wmic bios get serialnumber  ^- get bios serial  
-echo wmic cpu get name  ^- get cpu name  
-echo wmic os get name  ^- get os name  
-echo wscript.sleep 5000  ^- wait 5 sec (vbs inside batch)  
-
-timeout /t 99999 >nul
-
-goto :extra
-
-:notall
-echo cls  -  clears the screen  
-echo pause  -  waits for user input  
-echo exit  -  closes the script  
-echo title name  -  sets window title  
-echo color 0A  -  changes text color  
-echo call file.bat  -  runs another batch file  
-echo start file.exe  -  opens a file or program  
-echo cd /d path  -  changes directory  
-echo dir  -  lists files in a folder  
-echo copy source dest  -  copies files  
-echo move source dest  -  moves files  
-echo del file  -  deletes a file  
-echo rmdir /s /q folder  -  deletes folder  
-echo md folder  -  creates folder  
-echo set var=value  -  defines variable  
-echo echo %var%  -  prints variable  
-echo if condition command  -  conditional execution  
-echo for %%i in (*) do command  -  loops through files  
-echo choice /c yn /m "message"  -  user choice prompt  
-echo timeout /t 5 /nobreak  -  wait 5 sec  
-echo goto label  -  jumps to label  
-echo :label  -  defines label  
-echo > file.txt  -  creates file  
-echo >> file.txt  -  appends to file  
-echo type file.txt  -  displays file content  
-echo find "text" file.txt  -  searches in file  
-echo taskkill /im program.exe /f  -  force kill task  
-echo shutdown /s /t 0  -  shutdown pc
-
-timeout /t 99999 >nul
-
-goto :extra
-
-
 
 
 
@@ -936,8 +773,8 @@ goto :extra
 
 
 :windows
-cls
-mode 900,900  
+mode 61,900
+cls  
 echo alt + enter  ^- fullscreen for command prompt  
 echo alt + esc  ^- cycle through open windows  
 echo alt + f4  ^- close active window/shutdown pc  
@@ -1010,7 +847,7 @@ echo windows + .  ^- open emoji panel
 echo windows + space  ^- switch keyboard language  
 echo windows + tab  ^- open task view  
 
-timeout /t 1000 >nul
+pause
 goto extra
 
 :extra
@@ -1027,23 +864,24 @@ echo -5- refresh icon cache
 echo -6- ascii hanekawa art
 echo -7- matrix
 echo -8- display all system info
-echo -9- all DOS commands
+echo -9- collect pc data
 echo -10- all windows hotkeys
 echo -11- check ddr
 set /p choice=
 
 
 if /i "%choice%"=="B" call :menu
+if /i "%choice%"=="U" call :update
 if /i "%choice%"=="0" call :advanced
 if /i "%choice%"=="1" call :cmd
 if /i "%choice%"=="2" call :packages
 if /i "%choice%"=="3" call :internet
 if /i "%choice%"=="4" call :colors
-if /i "%choice%"=="5" call :refresh_icon_cache
+if /i "%choice%"=="5" call :refresh
 if /i "%choice%"=="6" call :ascii
 if /i "%choice%"=="7" call :matrix
 if /i "%choice%"=="8" call :systeminfo
-if /i "%choice%"=="9" call :DOS
+if /i "%choice%"=="9" call :collect
 if /i "%choice%"=="10" call :windows
 if /i "%choice%"=="11" call :ddr
 goto extra
@@ -1194,7 +1032,6 @@ timeout /t 9999 >nul
 goto :extra
 
 :date
-cls
 net session >nul 2>&1 || goto notadmin
 echo running as admin...
 
@@ -1203,18 +1040,22 @@ echo change? (y/n)
 set /p choice=
 if /i "%choice%" neq "y" goto :advanced
 
-echo input time (hh:mm)
-set /p newtime=
-time %newtime%
+for /f "tokens=1 delims=/.- " %%a in ("%date%") do set delf=%%a
+set /a delf=%delf% 2>nul
+if %delf% gtr 12 (set fmt=ddmmyyyy) else (set fmt=mmddyyyy)
 
-for /f "tokens=2 delims=/.-" %%a in ("%date%") do set delf=%%a
-if "%delf%" gtr "12" (set fmt=ddmmyyyy) else (set fmt=mmddyyyy)
-
-echo input date (%fmt%)
+echo enter new date:
+if "%fmt%"=="ddmmyyyy" (
+    echo format: DD-MM-YYYY
+) else (
+    echo format: MM-DD-YYYY
+)
 set /p newdate=
 date %newdate%
 
-echo date and time changed
+echo enter new time (HH:MM:SS):
+set /p newtime=
+time %newtime%
 
 timeout /t 999 >nul
 goto :advanced
@@ -1246,3 +1087,17 @@ powercfg -hibernate off
 rundll32.exe powrprof.dll,SetSuspendState 0,1,0
 powercfg -hibernate on
 goto :power
+
+:update
+echo checking github for new release
+
+:collect
+
+:toggleecho
+
+:logs
+
+:ddos
+
+
+
