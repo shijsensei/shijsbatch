@@ -1,6 +1,7 @@
-click on here to download, if you have a server or just wanna install thru cmd u can copy and paste it
-wget https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
 ![shijsbatch](https://github.com/user-attachments/assets/93a5bbf3-4f8e-47b8-8a41-79c614ff39b5)
+click on here to download, if you have a server or just wanna install thru cmd u can copy and paste it
+
+wget https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
 
 supported operating systems while these are supported systems, it is recommended to use windows 10
 
