@@ -2,7 +2,7 @@
 
 click on link to download, if you have a server or just wanna install thru powershell u can use this aswell (it will get saved in the powershell dir)
 
-https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
+curl -o https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
 
 supported operating systems while these are supported systems, it is recommended to use windows 10
 
