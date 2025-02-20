@@ -9,16 +9,16 @@ color 5
 if "%1"==":a" goto :a
 
 :menu
-mode 87,26
+mode 81,26
 cls                                                                  
-echo    ####    #    #   #        #    ####      #####     ##    #####   ####   #    #
-echo   #        #    #   #        #   #          #    #   #  #     #    #    #  #    #
-echo    ####    ######   #        #    ####      #####   #    #    #    #       ######
-echo        #   #    #   #        #        #     #    #  ######    #    #       #    #
-echo   #    #   #    #   #   #    #   #    #     #    #  #    #    #    #    #  #    #
-echo    ####    #    #   #    ####     ####      #####   #    #    #     ####   #    #
+echo   ####    #    #   #        #    ####      #####     ##    #####   ####   #    #
+echo  #        #    #   #        #   #          #    #   #  #     #    #    #  #    #
+echo   ####    ######   #        #    ####      #####   #    #    #    #       ######
+echo       #   #    #   #        #        #     #    #  ######    #    #       #    #
+echo  #    #   #    #   #   #    #   #    #     #    #  #    #    #    #    #  #    #
+echo   ####    #    #   #    ####     ####      #####   #    #    #     ####   #    #
 echo.                                                                                    
-echo you may press B at any point to come back to this menu
+echo you may press b at any point to come back to this menu
 echo.
 echo -1-shortcuts
 echo -2-fetch
@@ -38,7 +38,6 @@ goto menu
 :shortcuts
 cls
 
-:: initialize shortcuts.txt if it doesn't exist
 if not exist shortcuts.txt (
     cls
     echo no shortcuts found. creating shortcuts.txt...
@@ -52,16 +51,16 @@ if not exist shortcuts.txt (
 cls
 echo input 'create' to add a new 
 echo input 'delete (name)' to remove
+echo input 'edit' to edit shorcuts.txt
 echo ---------------
 
-setlocal enabledelayedexpansion
 for /f "tokens=1 delims=;" %%a in (shortcuts.txt) do (
     echo %%a
 )
 echo ---------------
 echo input shortcut name to open
-echo input B to go back
-set /p shortcut_choice="choose an option: "
+echo input b to go back
+set /p shortcut_choice=
 
 if /i "%shortcut_choice%"=="create" (
     call :create_shortcut
@@ -69,8 +68,10 @@ if /i "%shortcut_choice%"=="create" (
 ) else if "%shortcut_choice:~0,7%"=="delete " (
     call :delete_shortcut "%shortcut_choice:~7%"
     goto show_shortcuts
-) else if /i "%shortcut_choice%"=="B" (
+) else if /i "%shortcut_choice%"=="b" (
     goto menu
+) else if /i "%shortcut_choice%"=="edit" (
+    start notepad "%cd%\shortcuts.txt" & goto show_shortcuts
 ) else (
     call :open_shortcut "%shortcut_choice%"
     goto show_shortcuts
@@ -84,7 +85,7 @@ if /i "%shortcut_name%"=="exit" goto show_shortcuts
 set /p shortcut_path="enter the full path for the shortcut (type 'exit' to go back): "
 if /i "%shortcut_path%"=="exit" goto show_shortcuts
 
-:: check if the shortcut already exists
+
 findstr /x /c:"%shortcut_name%;%shortcut_path%" shortcuts.txt >nul
 if %errorlevel%==0 (
     echo a shortcut with that name already exists.
@@ -92,7 +93,7 @@ if %errorlevel%==0 (
     goto show_shortcuts
 )
 
-:: add shortcut to file
+
 echo %shortcut_name%;%shortcut_path% >> shortcuts.txt
 echo shortcut added successfully.
 
@@ -111,7 +112,7 @@ if %errorlevel% neq 0 (
     goto show_shortcuts
 )
 
-:: search and remove the shortcut
+
 findstr /v /c:"%delete_name%;" shortcuts.txt > temp.txt
 move /y temp.txt shortcuts.txt >nul
 echo shortcut '%delete_name%' deleted.
@@ -138,9 +139,6 @@ for /f "tokens=1,2 delims=;" %%a in (shortcuts.txt) do (
 echo shortcut not found.
 pause
 goto show_shortcuts
-
-
-
 
 :fetch
 cls
@@ -173,18 +171,18 @@ for /f "tokens=1" %%b in ('powershell -noprofile -command "get-wmiobject win32_c
 )
 echo total ram: !ramoutput!
 
-:: RAM usage (used and free)
-for /f "tokens=2 delims==" %%a in ('wmic OS get freephysicalmemory /value') do set "freeram=%%a"
-for /f "tokens=2 delims==" %%a in ('wmic OS get totalvisiblememorysize /value') do set "totalram=%%a"
+:: ram usage (used and free)
+for /f "tokens=2 delims==" %%a in ('wmic os get freephysicalmemory /value') do set "freeram=%%a"
+for /f "tokens=2 delims==" %%a in ('wmic os get totalvisiblememorysize /value') do set "totalram=%%a"
 
 if not defined totalram (
-    echo Failed to retrieve total RAM.
+    echo failed to retrieve total ram.
     pause
     exit /b
 )
 
 if not defined freeram (
-    echo Failed to retrieve free RAM.
+    echo failed to retrieve free ram.
     pause
     exit /b
 )
@@ -193,11 +191,11 @@ set /a "usedram=%totalram% - %freeram%"
 set /a "freerammb=%freeram% / 1024"
 set /a "usedrammb=%usedram% / 1024"
 
-echo used ram: %usedrammb% MB
-echo free ram: %freerammb% MB
+echo used ram: %usedrammb% mb
+echo free ram: %freerammb% mb
 
-:: GPU Information using PowerShell
-for /f "tokens=*" %%a in ('powershell -Command "Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Caption"') do (
+:: gpu information using powershell
+for /f "tokens=*" %%a in ('powershell -command "get-wmiobject win32_videocontroller | select-object -expandproperty caption"') do (
     set "gpu=%%a"
 )
 
@@ -259,7 +257,7 @@ set currentday=!currenttime:~6,2!
 set currenthour=!currenttime:~8,2!
 set currentminute=!currenttime:~10,2!
 
-:: convert times to total minutes since a reference point (e.g., 0000-01-01)
+:: convert times to total minutes since a reference point
 set /a lastbootminutes=(1!lastbootyear:~2,2! * 525600) + (1!lastbootmonth! * 43800) + (1!lastbootday! * 1440) + (1!lastboothour! * 60) + 1!lastbootminute!
 set /a currentminutes=(1!currentyear:~2,2! * 525600) + (1!currentmonth! * 43800) + (1!currentday! * 1440) + (1!currenthour! * 60) + 1!currentminute!
 
@@ -268,7 +266,9 @@ set /a uptime_days=uptime_minutes / 1440
 set /a uptime_hours=(uptime_minutes %% 1440) / 60
 set /a uptime_remaining_minutes=uptime_minutes %% 60
 
-:uptime_loop
+for /f %%a in ('echo prompt $H ^| findstr "."') do set "CR=%%a"
+
+:fetching
 cls
 echo                            /\     /\ 
 echo                           /  \   /  \ 
@@ -282,34 +282,27 @@ echo                     ^|    ^|       ^|   ; ^|
 echo                      \    \_____/     / 
 echo                       '^.           .'^  
 echo                         ^'\\____._///^'  
-
 echo current user: %username%
 echo operating system: !os!
 echo disk usage: !output!
 echo processor: !cpu!
-echo GPU: !gpu!
+echo gpu: !gpu!
 echo total ram: !ramoutput!
-echo used ram: %usedrammb% MB
-echo free ram: %freerammb% MB
+echo used ram: %usedrammb% mb
+echo free ram: %freerammb% mb
 echo architecture: !arch!
 echo motherboard: !pcmodel!
 
 echo screen resolution: !width! x !height!
 echo boot time: !boottime!
+
+:uptimeloop
 echo uptime: %uptime_days% days, %uptime_hours% hours, %uptime_remaining_minutes% minutes
 
-:: wait for 60 seconds before refreshing the information
-timeout /t 60 >nul
- 
-choice /c B /n
+choice /c b /n
 if errorlevel 1 goto menu
 
-:: loop back to the uptime calculation
-goto :uptime_loop
-
-if /i "%choice%"=="B" call :menu
-
-
+goto :fetching
 
 :matrix
 color 0a
@@ -347,8 +340,7 @@ goto numbers
 
 :ascii
 cls
-mode 152,100
-
+mode 152,50
 echo                        WWMMMMGGGGGGGGGGGGGGGGGMMMMMMMMGGMMMMMMMMMMMMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
 echo                       WWMMMMGGGGGGGGGGGGGGGGGGMMMMMMMMGGMMMMMMMMMMMMWWWWRWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
 echo                       WWMMMGGGGGGGGGGGGGGGGGGGMMMMMMMMMMMMMMMMMMMMGWWWWGMMRRMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
@@ -400,19 +392,17 @@ echo ................WWWRRRRRMMMRMMMRRRRWW..W...................................
 echo ................WWWRRRMMMMMMMMMMMRMWT..W.................................WWWWWWWRRRRRRMRMMMRRRAOTTTWW....................WWWWWWWWWWWWWWW
 echo ..............WWWRRRRMMMMMMMMMMMMMMWT.TW..............................WWWWTTWWRRRRRWWAARMMMWAOTTTTWW..................................WWWWWWWWWWWW
 echo ..............WWWWWWWMMMMMMMMMMMMMMWT.WT............................WWW...TWWRRRRRAOOOAMMMRAOTTTTTW............................................WWW
-pause > nul  REM 
+pause > nul  rem 
 
-choice /c B /n
+choice /c b /n
 if errorlevel 1 goto extra
 
-goto main
-
-
+goto ascii
 
 :cmd
 cls
 
-start cmd /K "echo cmd succsesfully opened"
+start cmd /k "echo cmd succsesfully opened"
 
 goto extra
 
@@ -424,19 +414,15 @@ echo please wait... checking internet connection...
 timeout /t 1 /nobreak >nul
 ping www.google.com -n 1 -w 1000 >nul && set "internet=connected" || set "internet=not connected"
 
-:: Get Local IP Address
-for /f "tokens=14" %%I in ('ipconfig ^| findstr /i "IPv4"') do set LocalIP=%%I
+for /f "tokens=14" %%i in ('ipconfig ^| findstr /i "ipv4"') do set localip=%%i
 
-:: Get Public IP Address
-for /f "delims=" %%I in ('curl -s https://api.ipify.org') do set PublicIP=%%I
+for /f "delims=" %%i in ('curl -s https://api.ipify.org') do set publicip=%%i
 
-:: Display both IPs
-echo your local IP address is: %LocalIP%
-echo your public IP address is: %PublicIP%
+echo your local ip address is: %localip%
+echo your public ip address is: %publicip%
 
 timeout /t 99999 >nul
-
-goto :extra
+goto extra
 
 :refresh
 echo refreshing icon cache...
@@ -459,7 +445,7 @@ echo -5- blue
 echo -6- magenta
 echo -7- cyan
 echo -8- white
-set /p fgChoice=
+set /p fgchoice=
 
 
 echo select a background color
@@ -471,51 +457,48 @@ echo -5- blue
 echo -6- magenta
 echo -7- cyan
 echo -8- white
-set /p bgChoice=
+set /p bgchoice=
 
 
-:: set the foreground and background colors based on user input
-if "%fgChoice%"=="B" goto :extra
-if "%fgChoice%"=="1" set fgColor=0
-if "%fgChoice%"=="2" set fgColor=4
-if "%fgChoice%"=="3" set fgColor=2
-if "%fgChoice%"=="4" set fgColor=6
-if "%fgChoice%"=="5" set fgColor=1
-if "%fgChoice%"=="6" set fgColor=5
-if "%fgChoice%"=="7" set fgColor=3
-if "%fgChoice%"=="8" set fgColor=7
+if "%fgchoice%"=="b" goto :extra
+if "%fgchoice%"=="1" set fgcolor=0
+if "%fgchoice%"=="2" set fgcolor=4
+if "%fgchoice%"=="3" set fgcolor=2
+if "%fgchoice%"=="4" set fgcolor=6
+if "%fgchoice%"=="5" set fgcolor=1
+if "%fgchoice%"=="6" set fgcolor=5
+if "%fgchoice%"=="7" set fgcolor=3
+if "%fgchoice%"=="8" set fgcolor=7
 
-if "%bgChoice%"=="B" goto :extra
-if "%bgChoice%"=="1" set bgColor=0
-if "%bgChoice%"=="2" set bgColor=4
-if "%bgChoice%"=="3" set bgColor=2
-if "%bgChoice%"=="4" set bgColor=6
-if "%bgChoice%"=="5" set bgColor=1
-if "%bgChoice%"=="6" set bgColor=5
-if "%bgChoice%"=="7" set bgColor=3
-if "%bgChoice%"=="8" set bgColor=7
+if "%bgchoice%"=="b" goto :extra
+if "%bgchoice%"=="1" set bgcolor=0
+if "%bgchoice%"=="2" set bgcolor=4
+if "%bgchoice%"=="3" set bgcolor=2
+if "%bgchoice%"=="4" set bgcolor=6
+if "%bgchoice%"=="5" set bgcolor=1
+if "%bgchoice%"=="6" set bgcolor=5
+if "%bgchoice%"=="7" set bgcolor=3
+if "%bgchoice%"=="8" set bgcolor=7
 
-:: apply the colors using the 'color' command
-color %bgColor%%fgColor%
+color %bgcolor%%fgcolor%
 
-:: display the selected colors
 cls
-echo you have selected text color %fgChoice% and background color %bgChoice%.
+echo you have selected text color %fgchoice% and background color %bgchoice%.
 
 
-choice /c B /n
+choice /c b /n
 if errorlevel 1 goto extra
 
 pause
 goto extra
 
 :taskmanager
-mode 87,26
+mode 81,26
 
 :taskmenu
 cls
-echo          Windows 98 Task Manager
-echo [B]menu
+echo          windows 95 task manager
+echo [b]menu
 echo [1]processes
 echo [2]kill process
 echo [3]performance
@@ -531,8 +514,8 @@ goto :taskmenu
 :taskmenu2
 timeout /t 3 /nobreak >nul
 
-echo [B]back
-echo [K]kill process
+echo [b]back
+echo [k]kill process
 set /p choice= 
 
 if "%choice%"=="k" goto :killprocess
@@ -556,54 +539,46 @@ mode 51,5
 cls
 
 
-:: Get CPU Usage
 for /f "tokens=2 delims==" %%a in ('wmic cpu get loadpercentage /value') do set cpu=%%a
 
-:: Get RAM Usage
-for /f "tokens=2 delims==" %%a in ('wmic OS get FreePhysicalMemory /value') do set freeram=%%a
-for /f "tokens=2 delims==" %%a in ('wmic OS get TotalVisibleMemorySize /value') do set totalram=%%a
+for /f "tokens=2 delims==" %%a in ('wmic os get freephysicalmemory /value') do set freeram=%%a
+for /f "tokens=2 delims==" %%a in ('wmic os get totalvisiblememorysize /value') do set totalram=%%a
 set /a usedram=%totalram% - %freeram%
 set /a freerammb=%freeram% / 1024
 set /a usedrammb=%usedram% / 1024
 set /a totalrammb=%totalram% / 1024
 
-:: Output the data
 echo ==============================================
-echo  CPU Usage: %cpu%%  
-echo  RAM Usage: %usedrammb%MB / %totalrammb%MB  
+echo  cpu usage: %cpu%%  
+echo  ram usage: %usedrammb%mb / %totalrammb%mb  
 echo ==============================================
 
 :: wait 1 second before refreshing the data
 ping -n 2 127.0.0.1 >nul
 
-:: Automatically refresh performance data
 goto :a
 
 :killprocess
 cls
 
 echo               kill process by name
-echo Enter the name of the process to kill (e.g., notepad.exe):
-set /p processname=Process: 
+echo enter the name of the process to kill (e.g., notepad.exe):
+set /p processname=process: 
 
-:: Kill the process by name
 taskkill /im "%processname%" /f >nul 2>&1
 
-:: Check if the process was successfully terminated
 if %errorlevel%==0 (
-    echo Process "%processname%" has been killed.
+    echo process "%processname%" has been killed.
 ) else (
-    echo Failed to kill process "%processname%" or it may not exist.
+    echo failed to kill process "%processname%" or it may not exist.
 )
 
-echo ==============================================
-
-choice /c B /n
+choice /c b /n
 if errorlevel 1 goto taskmenu
 
 :packages
 
-echo -B-back
+echo -b-back
 echo -1-install choco (package manager) [need to run batch as admin]
 echo -2-install packages                [need to run batch as admin]
 echo -3-usage      
@@ -614,7 +589,7 @@ echo packages are listed in  "usage"
 set /p choice=
 
 
-if /i "%choice%"=="B" call :extra
+if /i "%choice%"=="b" call :extra
 if /i "%choice%"=="1" call :choco
 if /i "%choice%"=="2" call :installpgk
 if /i "%choice%"=="3" call :usage
@@ -629,15 +604,14 @@ cls
 net session >nul 2>&1 || goto notadmin
 echo running as admin...
 
-echo Opening PowerShell to enable script execution and install Chocolatey...
+echo opening powershell to enable script execution and install chocolatey...
 
-powershell -NoExit -Command ^
-"Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; ^
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')); ^
-[System.Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\ProgramData\chocolatey\bin', [System.EnvironmentVariableTarget]::User); ^
-echo Installation Complete. Please restart your command prompt."
+powershell -noexit -command ^
+"set-executionpolicy remotesigned -scope currentuser -force; ^
+iex ((new-object system.net.webclient).downloadstring('https://community.chocolatey.org/install.ps1')); ^
+[system.environment]::setenvironmentvariable('path', $env:path + ';c:\programdata\chocolatey\bin', [system.environmentvariabletarget]::user); ^
+echo installation complete. please restart your command prompt."
 
-echo press any key
 pause 
 
 :installpgk
@@ -645,11 +619,11 @@ cls
 net session >nul 2>&1 || goto notadmin
 echo running as admin...
 
-echo Opening PowerShell to install packages with Chocolatey...
-echo This may take some time depending on your internet speed.
+echo oopening powershell to install packages with chocolatey...
+echo this may take some time depending on your internet speed.
 
-REM Run PowerShell script to install packages via Chocolatey directly
-powershell -Command "
+rem run powershell script to install packages via chocolatey directly
+powershell -command "
     choco install nano -y --confirm --accept-license --no-progress;
     choco install neofetch -y --confirm --accept-license --no-progress;
     choco install wget -y --confirm --accept-license --no-progress;
@@ -674,6 +648,8 @@ powershell -Command "
     choco install lolcat -y --confirm --accept-license --no-progress;
     choco install toilet -y --confirm --accept-license --no-progress;
     choco install asciiquarium -y --confirm --accept-license --no-progress;
+    choco install vim -y --confirm --accept-license --no-progress;
+    choco install ranger -y --confirm --accept-license --no-progress;
 "
 
 echo installation process completed
@@ -716,7 +692,7 @@ cls
 choco list
 
 timeout /t 99999 >nul
-
+goto packages
 
 :f
 
@@ -726,7 +702,7 @@ timeout /t 99999 >nul
 
 
 :systeminfo
-mode 900,900
+mode 94,52
 cls
 
 systeminfo 
@@ -741,9 +717,9 @@ echo running as admin...
 
 choco uninstall chocolatey -y
 
-rd /s /q C:\ProgramData\Chocolatey
+rd /s /q c:\programdata\chocolatey
 
-setx PATH "%PATH:C:\ProgramData\Chocolatey\bin;=%"
+setx path "%path:c:\programdata\chocolatey\bin;=%"
 
 echo chocolatey has been uninstalled successfully.
 pause
@@ -764,16 +740,8 @@ if "%devinput%"=="menu" goto :menu
 
 call :realterminal
 
-
-
-
-
-
-
-
-
 :windows
-mode 61,900
+mode 94,500
 cls  
 echo alt + enter  ^- fullscreen for command prompt  
 echo alt + esc  ^- cycle through open windows  
@@ -850,66 +818,27 @@ echo windows + tab  ^- open task view
 pause
 goto extra
 
-:extra
-mode 87,26
-cls
-
-echo -0- advanced tools [need admin]
-echo -1- open cmd
-echo -2- packages
-echo -3- test internet connection
-echo -4- colors
-echo -5- refresh icon cache
-echo -6- ascii hanekawa art
-echo -7- matrix
-echo -8- display all system info
-echo -9- collect pc data
-echo -10- all windows hotkeys
-echo -11- check ddr
-echo.
-echo -B- menu
-echo -U- update shijsbatch
-set /p choice=
-
-
-if /i "%choice%"=="B" call :menu
-if /i "%choice%"=="U" call :update
-if /i "%choice%"=="0" call :advanced
-if /i "%choice%"=="1" call :cmd
-if /i "%choice%"=="2" call :packages
-if /i "%choice%"=="3" call :internet
-if /i "%choice%"=="4" call :colors
-if /i "%choice%"=="5" call :refresh
-if /i "%choice%"=="6" call :ascii
-if /i "%choice%"=="7" call :matrix
-if /i "%choice%"=="8" call :systeminfo
-if /i "%choice%"=="9" call :collect
-if /i "%choice%"=="10" call :windows
-if /i "%choice%"=="11" call :ddr
-goto extra
 
 :ddr
 echo note that anything above ddr2 cannot be displayed
 
-:: Initialize a flag to check if DDR or DDR2 was found
-set foundDDR=0
+set foundddr=0
 
-for /f "skip=1" %%A in ('wmic memorychip get MemoryType 2^>nul') do (
-    set "ramtype=%%A"
+for /f "skip=1" %%a in ('wmic memorychip get memorytype 2^>nul') do (
+    set "ramtype=%%a"
     
     if "!ramtype!"=="20" (
-        echo  RAM type is DDR
-        set foundDDR=1
+        echo  ram type is ddr
+        set foundddr=1
     )
     if "!ramtype!"=="21" (
-        echo  RAM type is DDR2
-        set foundDDR=1
+        echo  ram type is ddr2
+        set foundddr=1
     )
 )
 
-:: If no DDR or DDR2 was found, display a message
-if "!foundDDR!"=="0" (
-    echo your RAM type is DDR3 or higher
+if "!foundddr!"=="0" (
+    echo your ram type is ddr3 or higher
 )
 
 timeout /t 10 >nul
@@ -922,29 +851,29 @@ echo running as admin...
 
 cls
 
-echo -B- back
+echo -b- back
 echo.
-echo -S- system backup 
+echo -s- system backup 
 echo.
-echo -R- repair system
+echo -r- repair system
 echo.
-echo -D- date and time configuration 
+echo -d- date and time configuration 
 echo.
-echo -P- power options 
+echo -p- power options 
 set /p choice=
 
-if /i "%choice%"=="B" call :extra
-if /i "%choice%"=="S" call :backup 
-if /i "%choice%"=="R" call :repair 
-if /i "%choice%"=="D" call :date   
-if /i "%choice%"=="P" call :power
+if /i "%choice%"=="b" call :extra
+if /i "%choice%"=="s" call :backup 
+if /i "%choice%"=="r" call :repair 
+if /i "%choice%"=="d" call :date   
+if /i "%choice%"=="p" call :power
 goto :advanced
 
 :backup
 net session >nul 2>&1 || goto notadmin
 echo running as admin...
 
-echo enter the path of the folder or drive to copy (e.g., C:\, D:\, or any folder path)
+echo enter the path of the folder or drive to copy (e.g., c:\, d:\, or any folder path)
 set /p source=
 
 
@@ -954,18 +883,18 @@ if not exist "%source%" (
 )
 
 
-echo enter the destination directory (e.g., E:\ or any folder path)
+echo enter the destination directory (e.g., e:\ or any folder path)
 set /p destination=
 
 
 if not exist "%destination%" (
-    echo Destination path does not exist.
+    echo destination path does not exist.
     goto :advanced
 )
 
 echo choose backup type:
-echo F folder
-echo Z ZIP File
+echo f folder
+echo z zip file
 set /p backuptype=
 
 if "%backuptype%"=="f" goto :backup_folder
@@ -977,8 +906,6 @@ goto :backup
 :backup_folder
 echo name the folder
 set /p foldername=
-
-:: create the new folder at the destination
 mkdir "%destination%\%foldername%"
 
 echo copying files from "%source%" to "%destination%\%foldername%" in 5 seconds
@@ -1010,7 +937,7 @@ echo name the zip file (without extension)
 set /p foldername=
 
 echo creating zip file "%destination%\%foldername%.zip"...
-powershell Compress-Archive -Path "%source%\*" -DestinationPath "%destination%\%foldername%.zip"
+powershell compress-archive -path "%source%\*" -destinationpath "%destination%\%foldername%.zip"
 
 echo zip operation completed
 
@@ -1048,14 +975,14 @@ if %delf% gtr 12 (set fmt=ddmmyyyy) else (set fmt=mmddyyyy)
 
 echo enter new date:
 if "%fmt%"=="ddmmyyyy" (
-    echo format: DD-MM-YYYY
+    echo format: dd-mm-yyyy
 ) else (
-    echo format: MM-DD-YYYY
+    echo format: mm-dd-yyyy
 )
 set /p newdate=
 date %newdate%
 
-echo enter new time (HH:MM:SS):
+echo enter new time (hh:mm:ss):
 set /p newtime=
 time %newtime%
 
@@ -1063,10 +990,10 @@ timeout /t 999 >nul
 goto :advanced
 
 :power
-echo B back
-echo S shutdown
-echo Z Zzzzzz
-echo R Restart
+echo b back
+echo s shutdown
+echo z zzzzzz
+echo r restart
 set /p option=
 
 if "%option%"=="s" goto :off
@@ -1086,7 +1013,7 @@ shutdown /r /f /t 0
 
 :sleep
 powercfg -hibernate off
-rundll32.exe powrprof.dll,SetSuspendState 0,1,0
+rundll32.exe powrprof.dll,setsuspendstate 0,1,0
 powercfg -hibernate on
 goto :power
 
@@ -1101,7 +1028,7 @@ set latest_version=%latest_version:"=%
 set latest_version=%latest_version:,=%
 for /f "tokens=* delims= " %%b in ("%latest_version%") do set latest_version=%%b
 
-set current_version=2
+set current_version=1
 set current_version=%current_version: =%
 
 echo current_version: %current_version%
@@ -1118,11 +1045,94 @@ if "%current_version%"=="%latest_version%" (
 timeout /t 9999 >nul
 goto :extra
 
+:elevate
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo requesting administrator privileges
+    powershell -command "start-process cmd -argumentlist '/c \"%~f0\"' -verb runas"
+    exit
+)
 
-:collect
+goto extra
+
+:close
+exit
+
+
+
+:batchoptions
+echo -b- back
+echo -1- toggle echo
+echo -2- jump section
+set /p option=
+
+if /i "%option%"=="1" call :toggleecho
+if /i "%option%"=="2" call :jumpsection
+if /i "%option%"=="B" call :extra
+
+goto :batchoptions
 
 :toggleecho
+echo -1- on
+echo -2- off
+set /p option=
 
-:logs
+if /i "%option%"=="1" (
+    @echo on
+)
+if /i "%option%"=="2" (
+    @echo off
+)
 
-:ddos
+goto batchoptions
+
+:jumpsection
+cls
+echo input goto (section)
+
+goto batchoptions
+
+:extra
+mode 81,26
+cls
+
+echo -0- advanced tools [need admin]
+echo -1- open cmd
+echo -2- packages
+echo -3- test internet connection
+echo -4- colors
+echo -5- refresh icon cache
+echo -6- ascii hanekawa art
+echo -7- matrix
+echo -8- display all system info
+echo -9- collect pc data
+echo -10- all windows hotkeys
+echo -11- check ddr
+echo.
+echo -b- menu
+echo -u- update shijsbatch
+echo -e- elevate to admin
+echo -x- close
+set /p choice=
+
+
+if /i "%choice%"=="b" call :menu
+if /i "%choice%"=="u" call :update
+if /i "%choice%"=="e" call :elevate
+if /i "%choice%"=="x" call :close
+if /i "%choice%"=="0" call :advanced
+if /i "%choice%"=="1" call :cmd
+if /i "%choice%"=="2" call :packages
+if /i "%choice%"=="3" call :internet
+if /i "%choice%"=="4" call :colors
+if /i "%choice%"=="5" call :refresh
+if /i "%choice%"=="6" call :ascii
+if /i "%choice%"=="7" call :matrix
+if /i "%choice%"=="8" call :systeminfo
+if /i "%choice%"=="9" call :collect
+if /i "%choice%"=="10" call :windows
+if /i "%choice%"=="11" call :ddr
+if /i "%choice%"=="12" call :batchoptions
+goto extra
+
+:rdp
