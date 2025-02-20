@@ -1,6 +1,6 @@
 ![shijsbatch](https://github.com/user-attachments/assets/93a5bbf3-4f8e-47b8-8a41-79c614ff39b5)
 
-click on link to download, if you have a server or just wanna install thru cmd u can use this aswell
+click on link to download, if you have a server or just wanna install thru powershell u can use this aswell (it will get saved in the powershell dir)
 
 wget https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat 
 
