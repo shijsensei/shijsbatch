@@ -1,8 +1,8 @@
 ![shijsbatch](https://github.com/user-attachments/assets/93a5bbf3-4f8e-47b8-8a41-79c614ff39b5)
 
-click on link to download, if you have a server or just wanna install thru powershell u can use this aswell (it will get saved in the powershell dir)
+click on link to download, if you have a server or just wanna install thru powershell u can use this aswell (it will get saved in C:)
 
-Invoke-WebRequest -Uri "https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat" -OutFile "shijsbatch.bat"
+Invoke-WebRequest -Uri "https://github.com/shijsensei/shijsbatch/releases/latest/download/shijsbatch.bat" -OutFile "C:"
 
 
 supported operating systems while these are supported systems, it is recommended to use windows 10
