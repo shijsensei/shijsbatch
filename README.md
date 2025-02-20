@@ -18,6 +18,5 @@ plans for the future:
 - port shijsbatch to windows 95/98
 - add better windows xp support
 - add anime girls ascii section
-- add personal computer password grabber
 
  ![original](https://github.com/user-attachments/assets/ed607000-4dc9-404b-8390-61ef2931e909)
