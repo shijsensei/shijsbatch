@@ -21,3 +21,4 @@ plans for the future:
 - add anime girls ascii section
 
  ![original](https://github.com/user-attachments/assets/ed607000-4dc9-404b-8390-61ef2931e909)
+discord: https://discord.gg/CZzmSueK4h
